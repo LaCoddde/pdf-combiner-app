@@ -1,0 +1,43 @@
+/* src/components/FileList.css */
+
+.file-list-ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+  max-height: 150px; /* Add a max height */
+  overflow-y: auto; /* and a scrollbar if needed */
+}
+
+.file-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.file-name {
+  color: #495057;
+  /* Prevent long file names from breaking the layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 1rem;
+}
+
+.remove-file-button {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  line-height: 1; /* Aligns the 'x' better */
+}
+
+.remove-file-button:hover {
+  color: #a71d2a;
+}

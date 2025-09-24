@@ -1,0 +1,25 @@
+/* src/components/FileUpload.css */
+
+.file-upload-container {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.file-upload-container:hover {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+/* Hide the default browser input button */
+.file-input {
+  display: none;
+}
+
+.file-label {
+  color: #666;
+  font-weight: 500;
+}
