@@ -1,25 +1,26 @@
 /* src/components/FileUpload.css */
 
 .file-upload-container {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 2rem;
+  border-radius: 20px;
+  padding: 2.5rem;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: all 0.2s ease-in-out;
+  
+  /* Inset shadow to make it look carved in */
+  box-shadow: inset 7px 7px 14px #bebebe,
+              inset -7px -7px 14px #ffffff;
 }
 
 .file-upload-container:hover {
-  border-color: #007bff;
-  background-color: #f8f9fa;
+  background: #d4d4d4; /* Slightly darken on hover */
 }
 
-/* Hide the default browser input button */
 .file-input {
   display: none;
 }
 
 .file-label {
-  color: #666;
+  color: #5a5a5a;
   font-weight: 500;
 }

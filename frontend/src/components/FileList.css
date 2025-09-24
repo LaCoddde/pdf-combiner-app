@@ -4,24 +4,27 @@
   list-style: none;
   padding: 0;
   margin-top: 1rem;
-  max-height: 150px; /* Add a max height */
-  overflow-y: auto; /* and a scrollbar if needed */
+  max-height: 140px;
+  overflow-y: auto;
+  /* Adds some padding for the scrollbar if it appears */
+  padding-right: 10px;
 }
 
 .file-list-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  background: #e0e0e0;
+  box-shadow: 5px 5px 10px #bebebe,
+              -5px -5px 10px #ffffff;
 }
 
 .file-name {
-  color: #495057;
-  /* Prevent long file names from breaking the layout */
+  color: #5a5a5a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -29,15 +32,27 @@
 }
 
 .remove-file-button {
-  background: none;
+  /* New inset button style */
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  background: #e0e0e0;
   border: none;
-  color: #dc3545;
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a9a9a;
+  font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  line-height: 1; /* Aligns the 'x' better */
+  line-height: 1;
+  transition: all 0.2s ease-in-out;
+  box-shadow: inset 3px 3px 6px #bebebe,
+              inset -3px -3px 6px #ffffff;
 }
 
 .remove-file-button:hover {
-  color: #a71d2a;
+  color: #e66;
+  box-shadow: inset 4px 4px 8px #bebebe,
+              inset -4px -4px 8px #ffffff;
 }

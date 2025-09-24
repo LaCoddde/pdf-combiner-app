@@ -1,8 +1,16 @@
 /* src/App.css */
 
+:root {
+  --background-color: #e0e0e0;
+  --light-shadow: #ffffff;
+  --dark-shadow: #bebebe;
+  --text-color: #5a5a5a;
+  --primary-color: #007bff;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f0f2f5;
+  background-color: var(--background-color);
   margin: 0;
   display: flex;
   justify-content: center;
@@ -12,51 +20,113 @@ body {
 
 .app-container {
   width: 100%;
-  max-width: 600px;
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  padding: 2.5rem;
+  border-radius: 30px;
+  background: var(--background-color);
+  box-shadow: 10px 10px 20px var(--dark-shadow),
+              -10px -10px 20px var(--light-shadow);
   text-align: center;
 }
 
 .app-header h1 {
   margin: 0;
-  color: #333;
+  color: var(--text-color);
+  font-size: 2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .app-header p {
-  color: #666;
-  margin-bottom: 2rem;
+  color: var(--text-color);
+  opacity: 0.8;
+  margin-bottom: 2.5rem;
 }
 
-.file-uploader-placeholder {
-  border: 2px dashed #ccc;
-  padding: 2rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  color: #999;
+.file-list-container {
+  margin-top: 1.5rem;
 }
 
-.file-list h2 {
-  font-size: 1.2rem;
-  color: #444;
+.file-list-container h2 {
+  font-size: 1rem;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+/* Base button styles */
+button, .download-button {
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+  background: var(--background-color);
+  box-shadow: 6px 6px 12px var(--dark-shadow),
+              -6px -6px 12px var(--light-shadow);
+}
+
+/* NEW Hover effect for all buttons */
+button:hover, .download-button:hover {
+  box-shadow: 4px 4px 8px var(--dark-shadow),
+              -4px -4px 8px var(--light-shadow);
+}
+
+button:active, .download-button:active {
+  /* This creates the "pressed in" effect */
+  box-shadow: inset 6px 6px 12px var(--dark-shadow),
+              inset -6px -6px 12px var(--light-shadow);
+  color: #333;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: inset 4px 4px 8px var(--dark-shadow),
+              inset -4px -4px 8px var(--light-shadow);
 }
 
 .combine-button {
   width: 100%;
-  padding: 0.8rem;
+  padding: 1rem;
   font-size: 1rem;
-  font-weight: bold;
-  color: white;
-  background-color: #007bff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 1rem;
+  color: var(--primary-color);
+  margin-top: 1.5rem;
 }
 
-.combine-button:hover {
-  background-color: #0056b3;
+/* --- Download Screen Styles --- */
+.download-container {
+  padding: 1rem;
+  text-align: center;
+}
+
+.download-container h3 {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+/* NEW Flexbox container for buttons */
+.download-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.download-button {
+  display: inline-block;
+  padding: 1rem 1.5rem; /* Same vertical padding */
+  font-size: 1rem;
+  color: #28a745; /* Green for success */
+  text-decoration: none;
+}
+
+.start-over-button {
+  padding: 1rem 1.2rem; /* Same vertical padding */
+  font-size: 1rem;
+  color: var(--text-color);
 }
