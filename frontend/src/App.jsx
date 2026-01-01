@@ -10,14 +10,67 @@ function App() {
 
   const MAX_FILES = 5;
 
+  const SUPPORTED_MIME_TYPES = [
+    'application/pdf',
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/heic',
+    'image/heif',
+    'image/webp',
+    'image/tiff',
+    'image/x-tiff',
+  ];
+
+  const SUPPORTED_EXTENSIONS = [
+    'pdf',
+    'png',
+    'jpg',
+    'jpeg',
+    'heic',
+    'heif',
+    'webp',
+    'tif',
+    'tiff',
+  ];
+
+  const getExtension = (filename = '') =>
+    filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
+
+  const isSupportedFile = (file) => {
+    const ext = getExtension(file.name);
+    return (
+      SUPPORTED_MIME_TYPES.includes(file.type) ||
+      SUPPORTED_EXTENSIONS.includes(ext)
+    );
+  };
+
   const handleFilesSelected = (files) => {
     if (downloadUrl) setDownloadUrl('');
+
     if (selectedFiles.length + files.length > MAX_FILES) {
-      alert(`You can only select a maximum of ${MAX_FILES} files.`);
+      alert(`You can only select a maximum of ${MAX_FILES} files. Remove some before adding more.`);
       return;
     }
-    const pdfFiles = files.filter(file => file.type === "application/pdf");
-    setSelectedFiles(prevFiles => [...prevFiles, ...pdfFiles]);
+
+    const validFiles = [];
+    const rejected = [];
+
+    files.forEach((file) => {
+      if (isSupportedFile(file)) {
+        validFiles.push(file);
+      } else {
+        rejected.push(file.name);
+      }
+    });
+
+    if (rejected.length) {
+      alert(`These files were skipped because they are not supported: ${rejected.join(', ')}`);
+    }
+
+    if (validFiles.length === 0) return;
+
+    setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles]);
   };
 
   const handleRemoveFile = (fileIndex) => {
@@ -60,7 +113,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>PDF Combiner 📄</h1>
-        <p>Select up to {MAX_FILES} PDF files to merge into one.</p>
+        <p>Select up to {MAX_FILES} PDFs or images to merge into one.</p>
       </header>
 
       <main className="app-main">
@@ -102,7 +155,7 @@ function App() {
               onClick={handleCombine}
               disabled={selectedFiles.length === 0 || isLoading}
             >
-              {isLoading ? 'Combining...' : 'Combine PDFs'}
+              {isLoading ? 'Combining...' : 'Combine Files'}
             </button>
           </>
         )}

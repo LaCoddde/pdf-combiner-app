@@ -16,12 +16,12 @@ const FileUpload = ({ onFilesSelected }) => {
         type="file"
         id="file-input"
         multiple // Allows selecting multiple files
-        accept=".pdf" // Restricts selection to only PDF files
+        accept=".pdf,image/png,image/jpeg,image/jpg,image/heic,image/heif,image/webp,image/tiff,image/x-tiff,image/*" // Allow PDFs and common image formats
         onChange={handleFileChange}
         className="file-input"
       />
       <label htmlFor="file-input" className="file-label">
-        Click to Browse or Drag & Drop Files Here
+        Click to Browse or Drag & Drop PDFs or Images Here
       </label>
     </div>
   );
