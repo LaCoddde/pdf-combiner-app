@@ -8,8 +8,6 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState('');
 
-  const MAX_FILES = 5;
-
   const SUPPORTED_MIME_TYPES = [
     'application/pdf',
     'image/png',
@@ -47,11 +45,6 @@ function App() {
 
   const handleFilesSelected = (files) => {
     if (downloadUrl) setDownloadUrl('');
-
-    if (selectedFiles.length + files.length > MAX_FILES) {
-      alert(`You can only select a maximum of ${MAX_FILES} files. Remove some before adding more.`);
-      return;
-    }
 
     const validFiles = [];
     const rejected = [];
@@ -113,7 +106,7 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <h1>PDF Combiner 📄</h1>
-        <p>Select up to {MAX_FILES} PDFs or images to merge into one.</p>
+        <p>Select PDFs or images to merge into one.</p>
       </header>
 
       <main className="app-main">
@@ -142,7 +135,7 @@ function App() {
             <FileUpload onFilesSelected={handleFilesSelected} />
 
             <div className="file-list-container">
-              <h2>Selected Files: ({selectedFiles.length}/{MAX_FILES})</h2>
+              <h2>Selected Files: ({selectedFiles.length})</h2>
               {selectedFiles.length > 0 ? (
                 <FileList files={selectedFiles} onRemoveFile={handleRemoveFile} />
               ) : (
