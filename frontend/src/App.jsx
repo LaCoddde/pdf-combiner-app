@@ -3,6 +3,9 @@ import FileUpload from './components/FileUpload';
 import FileList from './components/FileList';
 import './App.css';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
+const COMBINE_API_URL = `${API_BASE_URL}/api/combine`;
+
 function App() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,7 +84,7 @@ function App() {
     });
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/combine', {
+      const response = await fetch(COMBINE_API_URL, {
         method: 'POST',
         body: formData,
       });

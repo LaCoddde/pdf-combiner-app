@@ -24,3 +24,13 @@ Example:
 ```bash
 VITE_SITE_URL=https://yourdomain.com npm run build
 ```
+
+## Backend API URL
+
+Set `VITE_API_BASE_URL` so frontend requests go to your deployed backend.
+
+Example:
+
+```bash
+VITE_API_BASE_URL=https://your-backend-service.onrender.com npm run build
+```
