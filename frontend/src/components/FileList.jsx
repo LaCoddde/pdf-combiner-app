@@ -1,6 +1,7 @@
 // src/components/FileList.jsx
 
 import './FileList.css';
+import FilePreview from './FilePreview';
 
 const formatFileSize = (bytes) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -13,6 +14,7 @@ const FileList = ({ files, onRemoveFile }) => {
     <ul className="file-list-ul">
       {files.map((file, index) => (
         <li key={index} className="file-list-item">
+          <FilePreview file={file} />
           <span className="file-details">
             <span className="file-name">{file.name}</span>
             <span className="file-size">{formatFileSize(file.size)}</span>

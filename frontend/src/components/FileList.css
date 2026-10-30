@@ -4,7 +4,7 @@
   list-style: none;
   padding: 0;
   margin-top: 1rem;
-  max-height: 140px;
+  max-height: 260px;
   overflow-y: auto;
   /* Adds some padding for the scrollbar if it appears */
   padding-right: 10px;
@@ -14,10 +14,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem;
   border-radius: 12px;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
+  text-align: left;
   background: #e0e0e0;
   box-shadow: 5px 5px 10px #bebebe,
               -5px -5px 10px #ffffff;
@@ -28,7 +29,8 @@
   flex-direction: column;
   min-width: 0;
   text-align: left;
-  margin-right: 1rem;
+  flex: 1;
+  margin: 0 0.75rem;
 }
 
 .file-name {
@@ -60,6 +62,7 @@
   cursor: pointer;
   line-height: 1;
   transition: all 0.2s ease-in-out;
+  flex: 0 0 30px;
   box-shadow: inset 3px 3px 6px #bebebe,
               inset -3px -3px 6px #ffffff;
 }

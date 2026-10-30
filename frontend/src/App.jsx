@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import FileUpload from './components/FileUpload';
 import FileList from './components/FileList';
+import PageSelector from './components/PageSelector';
 import './App.css';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000').replace(/\/$/, '');
-const COMBINE_API_URL = `${API_BASE_URL}/api/combine`;
-const COMPRESS_API_URL = `${API_BASE_URL}/api/compress`;
+const API_URLS = {
+  combine: `${API_BASE_URL}/api/combine`,
+  compress: `${API_BASE_URL}/api/compress`,
+  extract: `${API_BASE_URL}/api/extract`,
+};
 
 const SUPPORTED_MIME_TYPES = [
   'application/pdf',
@@ -46,9 +50,34 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 };
 
+const MODE_CONTENT = {
+  combine: {
+    title: 'Combine files',
+    description: 'Merge PDFs and common image formats into one PDF in the order selected.',
+    uploadLabel: 'Choose PDFs or images to combine',
+    action: 'Combine Files',
+    loading: 'Combining...',
+  },
+  compress: {
+    title: 'Compress a PDF',
+    description: 'Reduces file size while keeping text sharp and images readable. Already optimized PDFs may not shrink.',
+    uploadLabel: 'Choose one PDF to compress',
+    action: 'Compress PDF',
+    loading: 'Compressing...',
+  },
+  extract: {
+    title: 'Extract pages',
+    description: 'Choose the pages you want and save them as a new PDF without changing their quality.',
+    uploadLabel: 'Choose one PDF to select pages from',
+    action: 'Save Selected Pages',
+    loading: 'Saving pages...',
+  },
+};
+
 function App() {
   const [mode, setMode] = useState('combine');
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [selectedPages, setSelectedPages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [download, setDownload] = useState(null);
 
@@ -62,23 +91,27 @@ function App() {
     if (nextMode === mode) return;
     clearDownload();
     setSelectedFiles([]);
+    setSelectedPages([]);
     setMode(nextMode);
   };
 
   const handleFilesSelected = (files) => {
     clearDownload();
 
-    if (mode === 'compress') {
+    if (mode !== 'combine') {
       const pdfFiles = files.filter(isPdf);
       const rejected = files.filter((file) => !isPdf(file));
 
       if (rejected.length) {
-        alert(`Compression currently supports PDFs only. Skipped: ${rejected.map((file) => file.name).join(', ')}`);
+        alert(`This tool currently supports PDFs only. Skipped: ${rejected.map((file) => file.name).join(', ')}`);
       }
       if (pdfFiles.length > 1) {
-        alert('Please compress one PDF at a time. The first PDF was selected.');
+        alert('Please choose one PDF at a time. The first PDF was selected.');
       }
-      if (pdfFiles.length) setSelectedFiles([pdfFiles[0]]);
+      if (pdfFiles.length) {
+        setSelectedFiles([pdfFiles[0]]);
+        setSelectedPages([]);
+      }
       return;
     }
 
@@ -96,6 +129,7 @@ function App() {
   const handleRemoveFile = (fileIndex) => {
     clearDownload();
     setSelectedFiles((previousFiles) => previousFiles.filter((_, index) => index !== fileIndex));
+    if (mode === 'extract') setSelectedPages([]);
   };
 
   const handleProcess = async () => {
@@ -103,14 +137,15 @@ function App() {
     clearDownload();
 
     const formData = new FormData();
-    if (mode === 'compress') {
-      formData.append('file', selectedFiles[0]);
-    } else {
+    if (mode === 'combine') {
       selectedFiles.forEach((file) => formData.append('files', file));
+    } else {
+      formData.append('file', selectedFiles[0]);
+      if (mode === 'extract') formData.append('pages', selectedPages.join(','));
     }
 
     try {
-      const response = await fetch(mode === 'compress' ? COMPRESS_API_URL : COMBINE_API_URL, {
+      const response = await fetch(API_URLS[mode], {
         method: 'POST',
         body: formData,
       });
@@ -122,55 +157,64 @@ function App() {
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const originalSize = Number(response.headers.get('X-Original-Size'));
-      const compressedSize = Number(response.headers.get('X-Compressed-Size'));
-      const savingsPercent = Number(response.headers.get('X-Savings-Percent'));
+      const originalSizeHeader = response.headers.get('X-Original-Size');
+      const compressedSizeHeader = response.headers.get('X-Compressed-Size');
+      const savingsHeader = response.headers.get('X-Savings-Percent');
+      const sourceName = selectedFiles[0]?.name.replace(/\.pdf$/i, '') || 'document';
 
       setDownload({
         url,
         filename: mode === 'compress'
-          ? `${selectedFiles[0].name.replace(/\.pdf$/i, '')}-compressed.pdf`
-          : 'combined.pdf',
-        originalSize,
-        compressedSize,
-        savingsPercent,
+          ? `${sourceName}-compressed.pdf`
+          : mode === 'extract'
+            ? `${sourceName}-selected-pages.pdf`
+            : 'combined.pdf',
+        originalSize: originalSizeHeader ? Number(originalSizeHeader) : null,
+        compressedSize: compressedSizeHeader ? Number(compressedSizeHeader) : null,
+        savingsPercent: savingsHeader ? Number(savingsHeader) : null,
+        selectedPageCount: mode === 'extract' ? selectedPages.length : null,
         mode,
       });
       setSelectedFiles([]);
+      setSelectedPages([]);
     } catch (error) {
-      console.error(`Error ${mode === 'compress' ? 'compressing' : 'combining'} PDF:`, error);
+      console.error(`Error processing PDF in ${mode} mode:`, error);
       alert(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const isCompressMode = mode === 'compress';
+  const isSinglePdfMode = mode !== 'combine';
+  const content = MODE_CONTENT[mode];
+  const actionDisabled =
+    selectedFiles.length === 0 ||
+    isLoading ||
+    (mode === 'extract' && selectedPages.length === 0);
 
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>PDF Toolkit 📄</h1>
-        <p>Combine documents or make a PDF smaller.</p>
+        <p>Combine, compress, or save selected pages.</p>
       </header>
 
       <div className="mode-switcher" aria-label="Choose a PDF tool">
-        <button
-          type="button"
-          className={`mode-button ${mode === 'combine' ? 'active' : ''}`}
-          onClick={() => handleModeChange('combine')}
-          aria-pressed={mode === 'combine'}
-        >
-          Combine
-        </button>
-        <button
-          type="button"
-          className={`mode-button ${isCompressMode ? 'active' : ''}`}
-          onClick={() => handleModeChange('compress')}
-          aria-pressed={isCompressMode}
-        >
-          Compress
-        </button>
+        {[
+          ['combine', 'Combine'],
+          ['compress', 'Compress'],
+          ['extract', 'Extract Pages'],
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={`mode-button ${mode === value ? 'active' : ''}`}
+            onClick={() => handleModeChange(value)}
+            aria-pressed={mode === value}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <main className="app-main">
@@ -195,6 +239,11 @@ function App() {
                 </p>
               </div>
             )}
+            {download.mode === 'extract' && (
+              <p className="extract-result">
+                Saved {download.selectedPageCount} selected {download.selectedPageCount === 1 ? 'page' : 'pages'} as a new PDF.
+              </p>
+            )}
             <div className="download-actions">
               <a href={download.url} download={download.filename} className="download-button">
                 Download
@@ -207,23 +256,19 @@ function App() {
         ) : (
           <>
             <div className="tool-description">
-              <h2>{isCompressMode ? 'Compress a PDF' : 'Combine files'}</h2>
-              <p>
-                {isCompressMode
-                  ? 'Reduces file size while keeping text sharp and images readable. Already optimized PDFs may not shrink.'
-                  : 'Merge PDFs and common image formats into one PDF in the order selected.'}
-              </p>
+              <h2>{content.title}</h2>
+              <p>{content.description}</p>
             </div>
 
             <FileUpload
               onFilesSelected={handleFilesSelected}
-              accept={isCompressMode ? '.pdf,application/pdf' : '.pdf,image/*'}
-              multiple={!isCompressMode}
-              label={isCompressMode ? 'Choose one PDF to compress' : 'Choose PDFs or images to combine'}
+              accept={isSinglePdfMode ? '.pdf,application/pdf' : '.pdf,image/*'}
+              multiple={!isSinglePdfMode}
+              label={content.uploadLabel}
             />
 
             <div className="file-list-container">
-              <h2>Selected {isCompressMode ? 'PDF' : `Files (${selectedFiles.length})`}</h2>
+              <h2>Selected {isSinglePdfMode ? 'PDF' : `Files (${selectedFiles.length})`}</h2>
               {selectedFiles.length > 0 ? (
                 <FileList files={selectedFiles} onRemoveFile={handleRemoveFile} />
               ) : (
@@ -231,14 +276,20 @@ function App() {
               )}
             </div>
 
+            {mode === 'extract' && selectedFiles[0] && (
+              <PageSelector
+                file={selectedFiles[0]}
+                selectedPages={selectedPages}
+                onSelectionChange={setSelectedPages}
+              />
+            )}
+
             <button
               className="primary-action-button"
               onClick={handleProcess}
-              disabled={selectedFiles.length === 0 || isLoading}
+              disabled={actionDisabled}
             >
-              {isLoading
-                ? (isCompressMode ? 'Compressing...' : 'Combining...')
-                : (isCompressMode ? 'Compress PDF' : 'Combine Files')}
+              {isLoading ? content.loading : content.action}
             </button>
           </>
         )}

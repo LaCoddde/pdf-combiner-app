@@ -186,6 +186,69 @@ def compressed_download_name(filename):
     return f'{safe_stem or "document"}-compressed.pdf'
 
 
+def parse_page_selection(raw_selection, page_count):
+    """Parse comma-separated pages and ranges while preserving selection order."""
+    if not raw_selection or not raw_selection.strip():
+        raise ValueError("Select at least one page.")
+
+    selected_pages = []
+    seen_pages = set()
+
+    for part in raw_selection.split(','):
+        value = part.strip()
+        if not value:
+            continue
+
+        if '-' in value:
+            range_parts = value.split('-', 1)
+            if len(range_parts) != 2 or not all(item.strip().isdigit() for item in range_parts):
+                raise ValueError("Page selection must use numbers such as 1, 3-5, 7.")
+            start, end = (int(item.strip()) for item in range_parts)
+            if start > end:
+                raise ValueError("Page ranges must run from a lower page to a higher page.")
+            page_numbers = range(start, end + 1)
+        elif value.isdigit():
+            page_numbers = [int(value)]
+        else:
+            raise ValueError("Page selection must use numbers such as 1, 3-5, 7.")
+
+        for page_number in page_numbers:
+            if page_number < 1 or page_number > page_count:
+                raise ValueError(f"Page {page_number} is outside this PDF's 1-{page_count} page range.")
+            if page_number not in seen_pages:
+                selected_pages.append(page_number)
+                seen_pages.add(page_number)
+
+    if not selected_pages:
+        raise ValueError("Select at least one page.")
+    return selected_pages
+
+
+def extract_pdf_pages(pdf_bytes, page_numbers):
+    """Copy selected pages into a new PDF without rasterizing or recompressing them."""
+    reader = PdfReader(io.BytesIO(pdf_bytes))
+    if reader.is_encrypted and not reader.decrypt(''):
+        raise ValueError("Password-protected PDFs are not supported yet.")
+
+    writer = PdfWriter()
+    for page_number in page_numbers:
+        writer.add_page(reader.pages[page_number - 1])
+
+    output_stream = io.BytesIO()
+    writer.write(output_stream)
+    output_bytes = output_stream.getvalue()
+    if validate_pdf(output_bytes) != len(page_numbers):
+        raise ValueError("Unable to create a valid PDF from the selected pages.")
+    return output_bytes
+
+
+def extracted_download_name(filename):
+    """Build a safe filename for a PDF containing selected pages."""
+    stem = Path(os.path.basename(filename or 'document.pdf')).stem
+    safe_stem = ''.join(char for char in stem if char.isalnum() or char in (' ', '-', '_')).strip()
+    return f'{safe_stem or "document"}-selected-pages.pdf'
+
+
 # 2. Define the API route
 @app.route('/api/combine', methods=['POST'])
 def combine_pdfs():
@@ -276,6 +339,46 @@ def compress_pdf_file():
     response.headers['X-Savings-Percent'] = f'{savings_percent:.1f}'
     response.headers['Access-Control-Expose-Headers'] = (
         'Content-Disposition, X-Original-Size, X-Compressed-Size, X-Savings-Percent'
+    )
+    return response
+
+
+@app.route('/api/extract', methods=['POST'])
+def extract_pdf_file():
+    if 'file' not in request.files:
+        return "No PDF sent", 400
+
+    file = request.files['file']
+    if not file or not file.filename:
+        return "No PDF sent", 400
+    if not is_pdf(file):
+        return "Only PDF files can have pages extracted.", 400
+
+    try:
+        file.stream.seek(0)
+        original_bytes = file.read()
+        if not original_bytes:
+            return "The selected PDF is empty.", 400
+
+        page_count = validate_pdf(original_bytes)
+        selected_pages = parse_page_selection(request.form.get('pages', ''), page_count)
+        extracted_bytes = extract_pdf_pages(original_bytes, selected_pages)
+    except ValueError as error:
+        return str(error), 400
+    except Exception as error:
+        print(f"Error extracting PDF pages: {error}")
+        return "Failed to extract pages. Please ensure the PDF is valid.", 500
+
+    response = send_file(
+        io.BytesIO(extracted_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=extracted_download_name(file.filename),
+    )
+    response.headers['X-Selected-Pages'] = ','.join(str(page) for page in selected_pages)
+    response.headers['X-Page-Count'] = str(len(selected_pages))
+    response.headers['Access-Control-Expose-Headers'] = (
+        'Content-Disposition, X-Selected-Pages, X-Page-Count'
     )
     return response
 

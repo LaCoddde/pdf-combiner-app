@@ -20,7 +20,7 @@ body {
 
 .app-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 640px;
   padding: 2.5rem;
   border-radius: 30px;
   background: var(--background-color);
@@ -48,7 +48,7 @@ body {
 
 .mode-switcher {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.5rem;
   padding: 0.4rem;
   margin-bottom: 1.75rem;
@@ -61,6 +61,7 @@ body {
   padding: 0.75rem;
   color: var(--text-color);
   box-shadow: none;
+  white-space: nowrap;
 }
 
 .mode-button:hover {
@@ -193,6 +194,12 @@ button:disabled {
   line-height: 1.45;
 }
 
+.extract-result {
+  margin: 1.25rem 0 0;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
 /* NEW Flexbox container for buttons */
 .download-actions {
   display: flex;
@@ -226,6 +233,15 @@ button:disabled {
     margin: 1rem;
     padding: 1.5rem;
     border-radius: 22px;
+  }
+
+  .mode-switcher {
+    gap: 0.25rem;
+  }
+
+  .mode-button {
+    padding: 0.7rem 0.35rem;
+    font-size: 0.78rem;
   }
 
   .download-actions {

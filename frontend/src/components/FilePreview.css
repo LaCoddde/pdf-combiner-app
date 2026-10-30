@@ -1,0 +1,36 @@
+.file-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 88px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #d7d7d7;
+  box-shadow: inset 3px 3px 6px #bebebe,
+              inset -3px -3px 6px #ffffff;
+}
+
+.file-preview canvas,
+.file-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.file-preview canvas.visible,
+.file-preview img.visible {
+  opacity: 1;
+}
+
+.preview-placeholder {
+  position: absolute;
+  color: #777;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}

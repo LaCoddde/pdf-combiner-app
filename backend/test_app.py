@@ -11,7 +11,7 @@ import app as app_module
 FIXTURE_PATH = Path(__file__).with_name('test.pdf')
 
 
-class CompressionTests(unittest.TestCase):
+class PdfApiTests(unittest.TestCase):
     def setUp(self):
         app_module.app.config.update(TESTING=True)
         self.client = app_module.app.test_client()
@@ -68,6 +68,62 @@ class CompressionTests(unittest.TestCase):
             app_module.compressed_download_name(unsafe_name),
             'taxes final-compressed.pdf',
         )
+
+    def test_page_selection_supports_ranges_and_removes_duplicates(self):
+        self.assertEqual(
+            app_module.parse_page_selection('3, 1-2, 3', page_count=3),
+            [3, 1, 2],
+        )
+
+    def test_extract_pdf_pages_preserves_selected_order(self):
+        original = FIXTURE_PATH.read_bytes()
+        original_reader = PdfReader(io.BytesIO(original))
+
+        extracted = app_module.extract_pdf_pages(original, [3, 1])
+        extracted_reader = PdfReader(io.BytesIO(extracted))
+
+        self.assertEqual(len(extracted_reader.pages), 2)
+        self.assertEqual(
+            extracted_reader.pages[0].mediabox,
+            original_reader.pages[2].mediabox,
+        )
+        self.assertEqual(
+            extracted_reader.pages[1].mediabox,
+            original_reader.pages[0].mediabox,
+        )
+
+    def test_extract_endpoint_returns_selected_pages(self):
+        original = FIXTURE_PATH.read_bytes()
+
+        response = self.client.post(
+            '/api/extract',
+            data={
+                'file': (io.BytesIO(original), 'Report.pdf'),
+                'pages': '1,3',
+            },
+            content_type='multipart/form-data',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/pdf')
+        self.assertEqual(response.headers['X-Selected-Pages'], '1,3')
+        self.assertEqual(response.headers['X-Page-Count'], '2')
+        self.assertEqual(len(PdfReader(io.BytesIO(response.data)).pages), 2)
+
+    def test_extract_endpoint_rejects_out_of_range_page(self):
+        original = FIXTURE_PATH.read_bytes()
+
+        response = self.client.post(
+            '/api/extract',
+            data={
+                'file': (io.BytesIO(original), 'Report.pdf'),
+                'pages': '4',
+            },
+            content_type='multipart/form-data',
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'outside this PDF', response.data)
 
 
 if __name__ == '__main__':
