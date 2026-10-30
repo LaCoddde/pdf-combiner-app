@@ -23,12 +23,25 @@
               -5px -5px 10px #ffffff;
 }
 
+.file-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+  margin-right: 1rem;
+}
+
 .file-name {
   color: #5a5a5a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 1rem;
+}
+
+.file-size {
+  margin-top: 0.2rem;
+  color: #777;
+  font-size: 0.75rem;
 }
 
 .remove-file-button {
